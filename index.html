@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LARGO — Objetos para o cotidiano</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+  <div id="site-header"></div>
+
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="eyebrow">Largo — loja de objetos</span>
+        <h1>Peças feitas para durar, não para decorar por um mês.</h1>
+        <p class="lede">Cerâmica, madeira e têxteis selecionados de pequenos ateliês. Cada peça vem com sua referência, como em um catálogo de museu.</p>
+        <div style="margin-top: 2rem; display:flex; gap: 1rem;">
+          <a href="produtos.html" class="btn btn-primary">Ver produtos</a>
+          <a href="sobre.html" class="btn btn-outline">Nossa história</a>
+        </div>
+      </div>
+      <div class="hero-img">
+        <img src="https://picsum.photos/seed/largohero/800/1000" alt="Objetos de cerâmica e madeira dispostos sobre uma mesa clara" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Em destaque</h2>
+        <a href="produtos.html" class="nav-link">Ver todos →</a>
+      </div>
+      <div class="grid" id="featuredGrid"></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap footer-inner">
+      <span>LARGO — objetos para o cotidiano</span>
+      <span>© 2026 LARGO. Todos os direitos reservados.</span>
+    </div>
+  </footer>
+
+  <script src="assets/products.js"></script>
+  <script src="assets/cart.js"></script>
+  <script src="assets/menu.js"></script>
+  <script type="module" src="assets/firebase.js"></script>
+  <script>
+    const featuredGrid = document.getElementById("featuredGrid");
+    PRODUCTS.filter((p) => p.featured).forEach((p) => {
+      featuredGrid.insertAdjacentHTML(
+        "beforeend",
+        `<div class="card">
+          <a href="produtos.html" class="card-img">
+            <img src="${p.img}" alt="${p.name}" />
+          </a>
+          <span class="ref">${p.ref} — ${p.category}</span>
+          <h3>${p.name}</h3>
+          <span class="price">${formatBRL(p.price)}</span>
+          <button class="btn btn-outline btn-sm" onclick="addToCart('${p.id}'); this.textContent='Adicionado ✓'; setTimeout(()=>this.textContent='Adicionar', 1200)">Adicionar</button>
+        </div>`
+      );
+    });
+  </script>
+</body>
+</html>
