@@ -1,0 +1,383 @@
+/* ============================================
+   LARGO — motion + mobile polish
+   Carregar DEPOIS de style.css. Não altera nenhum arquivo existente.
+   ============================================ */
+:root {
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---------- Transição entre páginas (Chrome/Edge/Safari novos) ---------- */
+@view-transition {
+  navigation: auto;
+}
+#site-header {
+  view-transition-name: site-header;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.28s;
+}
+
+/* Fallback p/ navegadores sem View Transitions: fade da página + header descendo */
+@supports not (view-transition-name: none) {
+  body {
+    animation: page-in 0.5s ease both;
+  }
+  #site-header {
+    animation: drop-in 0.6s var(--ease) both;
+  }
+}
+@keyframes page-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes drop-in {
+  from { transform: translateY(-100%); }
+  to { transform: none; }
+}
+
+/* ---------- Header ---------- */
+#site-header {
+  transition: box-shadow 0.3s ease, background 0.3s ease;
+}
+#site-header.is-scrolled {
+  box-shadow: 0 8px 24px -18px rgba(29, 33, 28, 0.45);
+}
+.header-inner {
+  transition: padding 0.3s var(--ease);
+}
+#site-header.is-scrolled .header-inner {
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+}
+
+.logo {
+  transition: letter-spacing 0.4s var(--ease);
+}
+
+/* Sublinhado dos links cresce no hover */
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 1px;
+  background: var(--moss);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s var(--ease);
+}
+.nav-link:hover::after,
+.nav-link.is-active::after {
+  transform: scaleX(1);
+}
+
+.cart-link svg {
+  transition: transform 0.3s var(--ease);
+}
+
+/* Badge do carrinho "pula" quando o número muda (classe via motion.js) */
+.cart-badge.bump {
+  animation: bump 0.5s var(--ease);
+}
+@keyframes bump {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.6); }
+  100% { transform: scale(1); }
+}
+
+/* ---------- Hero (entrada em cascata) ---------- */
+.hero-grid > div:first-child > * {
+  animation: rise 0.9s var(--ease) both;
+}
+.hero-grid > div:first-child > :nth-child(1) { animation-delay: 0.05s; }
+.hero-grid > div:first-child > :nth-child(2) { animation-delay: 0.15s; }
+.hero-grid > div:first-child > :nth-child(3) { animation-delay: 0.28s; }
+.hero-grid > div:first-child > :nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: none; }
+}
+
+.hero-img {
+  animation: clip-in 1.1s var(--ease) 0.1s both;
+}
+@keyframes clip-in {
+  from { clip-path: inset(0 0 100% 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+.hero-img img {
+  animation: img-settle 1.6s var(--ease) 0.1s both;
+}
+@keyframes img-settle {
+  from { transform: scale(1.14); }
+  to { transform: scale(1); }
+}
+
+/* ---------- Reveal ao rolar (classes via motion.js) ---------- */
+.js .reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+  transition-delay: var(--d, 0ms);
+}
+.js .reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- Imagens: skeleton + fade ao carregar ---------- */
+.card-img {
+  background: linear-gradient(100deg, var(--surface) 30%, #fff 50%, var(--surface) 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+.card-img:has(img.is-loaded) {
+  animation: none;
+}
+@keyframes shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+.js .card-img img,
+.js .cart-row img {
+  opacity: 0;
+  transition: opacity 0.6s ease, transform 0.6s var(--ease);
+}
+.js .card-img img.is-loaded,
+.js .cart-row img.is-loaded {
+  opacity: 1;
+}
+.js .hero-img img:not(.is-loaded) {
+  opacity: 0;
+}
+.hero-img img {
+  transition: opacity 0.8s ease;
+}
+
+/* ---------- Cards ---------- */
+.card-img {
+  transition: box-shadow 0.4s ease, transform 0.4s var(--ease);
+}
+.card:active .card-img {
+  transform: scale(0.985);
+}
+
+/* ---------- Botões ---------- */
+.btn {
+  transition: background 0.25s ease, color 0.25s ease, transform 0.15s ease, box-shadow 0.25s ease;
+}
+.btn.is-added {
+  background: var(--moss);
+  color: #fff;
+  animation: pop 0.45s var(--ease);
+}
+@keyframes pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.07); }
+  100% { transform: scale(1); }
+}
+
+/* ---------- Filtros ---------- */
+.filter-btn {
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.15s ease;
+}
+.filter-btn:active {
+  transform: scale(0.95);
+}
+
+/* ---------- Formulários ---------- */
+.field input,
+.field textarea {
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--moss);
+  box-shadow: 0 0 0 3px rgba(51, 70, 60, 0.14);
+  background: #fff;
+}
+.field label {
+  transition: color 0.25s ease;
+}
+.field:focus-within label {
+  color: var(--moss);
+}
+
+/* ---------- Checkout ---------- */
+.qty-control button {
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+.qty-control button:active {
+  transform: scale(0.88);
+}
+.cart-row .remove {
+  transition: opacity 0.2s ease;
+}
+
+/* Resultado do pagamento (aprovado / Pix) aparece em cascata */
+.summary > h3,
+.summary > p,
+.summary > img,
+.summary > textarea,
+.summary > button,
+.summary > a {
+  animation: rise 0.6s var(--ease) both;
+}
+.summary > :nth-child(2) { animation-delay: 0.08s; }
+.summary > :nth-child(3) { animation-delay: 0.16s; }
+.summary > :nth-child(4) { animation-delay: 0.24s; }
+.summary > :nth-child(5) { animation-delay: 0.32s; }
+
+/* ---------- Só em dispositivos com mouse (evita "hover preso" no toque) ---------- */
+@media (hover: hover) {
+  .logo:hover { letter-spacing: 0.09em; }
+  .cart-link:hover svg { transform: translateY(-2px) rotate(-6deg); }
+  .card:hover .card-img {
+    box-shadow: 0 18px 32px -18px rgba(32, 47, 40, 0.45);
+    transform: translateY(-4px);
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn:active { transform: scale(0.98); }
+  .filter-btn:hover:not(.is-active) {
+    border-color: var(--moss);
+    color: var(--moss);
+  }
+  .field input:hover,
+  .field textarea:hover { border-color: #b9b29d; }
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 780px) {
+  /* Menu mobile desliza em vez de aparecer de repente */
+  .nav-mobile {
+    display: flex;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-top-color: transparent;
+    transition: max-height 0.4s var(--ease), opacity 0.3s ease, padding 0.4s var(--ease),
+      visibility 0s linear 0.4s;
+  }
+  .nav-mobile.is-open {
+    max-height: 440px;
+    opacity: 1;
+    visibility: visible;
+    padding-top: 0.5rem;
+    padding-bottom: 1rem;
+    border-top-color: var(--line);
+    transition-delay: 0s;
+  }
+  .nav-mobile a {
+    padding: 0.95rem 0;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.3s ease, transform 0.4s var(--ease);
+  }
+  .nav-mobile.is-open a {
+    opacity: 1;
+    transform: none;
+  }
+  .nav-mobile.is-open a:nth-child(1) { transition-delay: 0.06s; }
+  .nav-mobile.is-open a:nth-child(2) { transition-delay: 0.1s; }
+  .nav-mobile.is-open a:nth-child(3) { transition-delay: 0.14s; }
+  .nav-mobile.is-open a:nth-child(4) { transition-delay: 0.18s; }
+  .nav-mobile.is-open a:nth-child(5) { transition-delay: 0.22s; }
+
+  .hamburger { width: 36px; height: 36px; align-items: flex-start; padding: 7px 4px; }
+
+  .hero { padding: 2.5rem 0 3rem; }
+  .hero-grid { gap: 2rem; }
+  .hero-img { aspect-ratio: 4 / 4.2; }
+  .section { padding: 3rem 0; }
+  .section-head { margin-bottom: 1.5rem; }
+
+  /* Filtros viram uma faixa que rola de lado */
+  .section-head .filters {
+    width: calc(100% + 3rem);
+    margin: 0 -1.5rem;
+    padding: 0 1.5rem 0.25rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .section-head .filters::-webkit-scrollbar { display: none; }
+  .filter-btn { padding: 0.65rem 1rem; white-space: nowrap; flex: none; }
+
+  /* iOS dá zoom em inputs com fonte menor que 16px */
+  .field input,
+  .field textarea { font-size: 16px; }
+  .field input { min-height: 46px; }
+  .btn { min-height: 44px; }
+
+  /* Checkout */
+  .cart-row { gap: 0.75rem; }
+  .cart-row img { width: 56px; height: 70px; }
+  .qty-control button { width: 36px; height: 36px; font-size: 1.05rem; }
+  .cart-row .remove { padding: 0.5rem 0.25rem; }
+  .summary { padding: 1.25rem; }
+
+  footer { padding-bottom: calc(2.5rem + env(safe-area-inset-bottom, 0px)); }
+}
+
+@media (max-width: 520px) {
+  /* 2 colunas no celular, em vez de 1 produto por tela */
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem 0.85rem;
+  }
+  .card h3 { font-size: 0.95rem; }
+  .card .price { font-size: 0.88rem; }
+  .card .btn { width: 100%; justify-content: center; }
+  .hero h1 { font-size: 2.1rem; }
+  .hero p.lede { max-width: none; }
+}
+
+/* Resumo do pedido acompanha a rolagem no desktop */
+@media (min-width: 901px) {
+  .summary {
+    position: sticky;
+    top: 5.5rem;
+  }
+}
+
+/* ---------- Página 404 ---------- */
+.nf-code {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(5rem, 22vw, 11rem);
+  line-height: 0.9;
+  color: var(--moss);
+  letter-spacing: -0.02em;
+  animation: float 5s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* ---------- Acessibilidade: sem movimento ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .js .reveal { opacity: 1; transform: none; }
+  .js .card-img img,
+  .js .cart-row img,
+  .js .hero-img img { opacity: 1; }
+  .card-img,
+  .nf-code { animation: none; }
+  .hero-img,
+  .hero-img img { animation: none; clip-path: none; }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
+}

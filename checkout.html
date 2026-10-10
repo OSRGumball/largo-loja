@@ -6,7 +6,9 @@
   <title>Checkout — LARGO</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script>document.documentElement.classList.add("js");</script>
   <link rel="stylesheet" href="assets/style.css" />
+  <link rel="stylesheet" href="assets/motion.css" />
 </head>
 <body>
 
@@ -119,6 +121,72 @@
     //      c) devolva o resultado (aprovado/pendente/recusado) para o front
     //    Isso pode ser uma função serverless (Vercel/Netlify) ou um endpoint próprio.
     // ---------------------------------------------------------------
+    // Tela de resultado: limpa a sacola e mostra aprovado / pendente (Pix) / recusado.
+    function showResult(data) {
+      if (data.status === "rejected") {
+        alert("Pagamento recusado. Tente outro cartão ou método.");
+        return; // mantém a sacola pra tentar de novo
+      }
+
+      localStorage.removeItem(CART_KEY);
+      updateCartBadge();
+      if (brickController) {
+        brickController.unmount();
+        brickController = null;
+      }
+      cartListEl.innerHTML = "";
+
+      const box = document.querySelector(".summary");
+      box.innerHTML = "";
+
+      const title = document.createElement("h3");
+      title.style.fontFamily = "var(--font-display)";
+      title.style.marginBottom = "0.75rem";
+      const text = document.createElement("p");
+      text.style.color = "var(--ink-soft)";
+      box.append(title, text);
+
+      if (data.status === "approved") {
+        title.textContent = "Pagamento aprovado";
+        text.textContent = "Obrigado pela compra!";
+      } else if (data.pix) {
+        title.textContent = "Falta pouco: pague com Pix";
+        text.textContent = "Escaneie o QR Code ou use o Pix copia e cola. O pedido é confirmado assim que o pagamento cair.";
+        if (data.pix.qr_code_base64) {
+          const img = document.createElement("img");
+          img.src = "data:image/png;base64," + data.pix.qr_code_base64;
+          img.alt = "QR Code Pix";
+          img.style.cssText = "width:200px;margin:1rem auto;";
+          box.append(img);
+        }
+        if (data.pix.qr_code) {
+          const code = document.createElement("textarea");
+          code.readOnly = true;
+          code.value = data.pix.qr_code;
+          code.style.cssText = "width:100%;height:90px;margin-top:0.75rem;font-family:var(--font-mono);font-size:0.75rem;";
+          const copy = document.createElement("button");
+          copy.className = "btn btn-outline btn-sm";
+          copy.style.marginTop = "0.5rem";
+          copy.textContent = "Copiar código";
+          copy.onclick = () => navigator.clipboard.writeText(data.pix.qr_code).then(() => (copy.textContent = "Copiado ✓"));
+          box.append(code, copy);
+        }
+        if (data.pix.ticket_url) {
+          const link = document.createElement("a");
+          link.href = data.pix.ticket_url;
+          link.target = "_blank";
+          link.rel = "noopener";
+          link.className = "btn btn-primary btn-sm";
+          link.style.cssText = "display:inline-flex;margin-top:0.75rem;margin-left:0.5rem;";
+          link.textContent = "Abrir página do Pix";
+          box.append(link);
+        }
+      } else {
+        title.textContent = "Pagamento em análise";
+        text.textContent = "Avisaremos assim que for confirmado.";
+      }
+    }
+
     let brickController;
 
     async function initPaymentBrick(amount) {
@@ -147,8 +215,6 @@
         callbacks: {
           onReady: () => {},
           onSubmit: ({ selectedPaymentMethod, formData }) => {
-            // Envie 'formData' para o SEU backend, que fará a chamada
-            // segura à API do Mercado Pago com o access token.
             // Manda só id/qty; o servidor recalcula o total com o catálogo dele.
             const cartItems = getCart().map(({ id, qty }) => ({ id, qty }));
 
@@ -156,11 +222,11 @@
               fetch("/api/process_payment", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...formData, items: cartItems }),
+                body: JSON.stringify({ formData, selectedPaymentMethod, items: cartItems }),
               })
                 .then((res) => res.json())
                 .then(async (data) => {
-                  console.log("Pagamento processado:", data);
+                  console.log("Pedido processado:", data);
 
                   if (data.error) {
                     alert("Não foi possível processar o pagamento: " + data.error);
@@ -168,33 +234,24 @@
                     return;
                   }
 
-                  // Salva o pedido no Firestore (funciona para usuário
-                  // logado ou visitante — nesse caso 'uid' fica null).
-                  const cart = getCart();
-                  const items = cart.map((item) => {
-                    const p = PRODUCTS.find((prod) => prod.id === item.id);
-                    return { id: item.id, name: p?.name, qty: item.qty, price: p?.price };
-                  });
-                  await window.largoSaveOrder({
-                    items,
-                    total: cartTotal(),
-                    status: data.status,
-                  });
-
-                  localStorage.removeItem(CART_KEY);
-
-                  if (data.status === "approved") {
-                    alert("Pagamento aprovado! Obrigado pela compra.");
-                  } else if (data.status === "in_process") {
-                    alert("Pagamento em análise. Avisaremos assim que for confirmado.");
-                  } else {
-                    alert("Pagamento recusado. Tente outro cartão ou método.");
+                  // Salva o pedido no Firestore (uid fica null para visitante).
+                  // Falha ao salvar não deve esconder um pagamento já feito.
+                  try {
+                    const items = getCart().map((item) => {
+                      const p = PRODUCTS.find((prod) => prod.id === item.id);
+                      return { id: item.id, name: p?.name, qty: item.qty, price: p?.price };
+                    });
+                    await window.largoSaveOrder({ items, total: cartTotal(), status: data.status });
+                  } catch (e) {
+                    console.error("Erro ao salvar pedido:", e);
                   }
 
+                  showResult(data);
                   resolve();
                 })
                 .catch((err) => {
                   console.error(err);
+                  alert("Erro de conexão ao processar o pagamento. Tente novamente.");
                   reject();
                 });
             });
@@ -206,5 +263,6 @@
 
     renderCart();
   </script>
+  <script src="assets/motion.js" defer></script>
 </body>
 </html>
