@@ -187,10 +187,18 @@
       }
     }
 
+    // Espera o Firebase informar se há usuário logado (máx. 1,5 s) para
+    // já preencher o e-mail no formulário do Pix.
+    const authReady = new Promise((resolve) => {
+      document.addEventListener("largo-auth-changed", () => resolve(), { once: true });
+      setTimeout(resolve, 1500);
+    });
+
     let brickController;
 
     async function initPaymentBrick(amount) {
       if (amount <= 0) return;
+      await authReady;
       const container = document.getElementById("paymentBrick_container");
       container.innerHTML = "";
 
@@ -204,6 +212,7 @@
       brickController = await bricksBuilder.create("payment", "paymentBrick_container", {
         initialization: {
           amount: amount,
+          ...(window.largoCurrentUser?.email ? { payer: { email: window.largoCurrentUser.email } } : {}),
         },
         customization: {
           paymentMethods: {
