@@ -198,7 +198,7 @@
         brickController.unmount();
       }
 
-      const mp = new MercadoPago("APP_USR-xxxxxxxx-xxxxxx-xxxxxxxxxxxxxxxxxxxxxxxx-xxxxxxxxx", { locale: "pt-BR" });
+      const mp = new MercadoPago("APP_USR-4be6269d-372c-4d41-a15a-fa7188cb52be", { locale: "pt-BR" });
       const bricksBuilder = mp.bricks();
 
       brickController = await bricksBuilder.create("payment", "paymentBrick_container", {
